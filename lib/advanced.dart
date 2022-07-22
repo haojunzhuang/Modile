@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_joystick/flutter_joystick.dart';
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:modbus/modbus.dart';
 import 'package:logging/logging.dart';
 import 'utils.dart';
+import 'package:flutter_joystick/flutter_joystick.dart';
 
 const ballSize = 12.0;
 const velocityCoefficient = 2000;

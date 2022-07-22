@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_joystick/flutter_joystick.dart';
 import 'basic.dart';
 import 'advanced.dart';
 
