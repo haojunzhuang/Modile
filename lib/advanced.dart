@@ -103,7 +103,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
   }
 
   void roundSimilar() {
-    if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.1) {
+    if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.2) {
       _speed1 = _speed0;
     } else {}
   }

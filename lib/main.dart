@@ -39,7 +39,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     //index0
     AdvancePage(),
     Text(
-      'Index 2: School',
+      'Index 2',
       style: optionStyle,
     ),
   ];
