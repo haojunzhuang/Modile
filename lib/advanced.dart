@@ -102,9 +102,18 @@ class _JoyStickPageState extends State<JoyStickPage> {
     }
   }
 
-  void end0() async {}
+  void roundSimilar() {
+    if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.1) {
+      _speed1 = _speed0;
+    } else {}
+  }
 
-  void end1() async {}
+  void roundZero() {
+    _speed0 = 0;
+    _speed1 = 0;
+    changeSpeed0();
+    changeSpeed1();
+  }
 
   void changeSpeed0() async {
     _speed0 *= velocityCoefficient;
@@ -117,6 +126,16 @@ class _JoyStickPageState extends State<JoyStickPage> {
     var cli = await _connect('192.168.0.200');
     cli.writeSingleRegister(48, -_speed1.toInt());
     //negative
+  }
+
+  void end0() async {
+    _speed0 = 0;
+    changeSpeed0();
+  }
+
+  void end1() async {
+    _speed1 = 0;
+    changeSpeed1();
   }
 
   void test() async {
@@ -156,10 +175,11 @@ class _JoyStickPageState extends State<JoyStickPage> {
                     alignment: const Alignment(0, 0.8),
                     child: Joystick(
                         mode: JoystickMode.vertical,
-                        period: const Duration(milliseconds: 200),
+                        period: const Duration(milliseconds: 100),
                         listener: (details) {
                           setState(() {
                             _speed0 = details.y;
+                            roundSimilar();
                             changeSpeed0();
                           });
                         },
@@ -174,10 +194,11 @@ class _JoyStickPageState extends State<JoyStickPage> {
                     alignment: const Alignment(0, 0.8),
                     child: Joystick(
                         mode: JoystickMode.vertical,
-                        period: const Duration(milliseconds: 200),
+                        period: const Duration(milliseconds: 100),
                         listener: (details) {
                           setState(() {
                             _speed1 = details.y;
+                            roundSimilar();
                             changeSpeed1();
                           });
                         },
@@ -200,7 +221,6 @@ class _JoyStickPageState extends State<JoyStickPage> {
                 children: const [Text('a'), Text('b')]),
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
                 children: [Text('$_speed0'), Text('$_speed1')]),
             Container(
                 color: Colors.orangeAccent,
@@ -213,12 +233,14 @@ class _JoyStickPageState extends State<JoyStickPage> {
               alignment: const Alignment(0, 0.8),
               child: Joystick(
                   mode: JoystickMode.all,
-                  period: const Duration(milliseconds: 200),
+                  period: const Duration(milliseconds: 100),
                   listener: (details) {
                     setState(() {
-                      List<double> result = Utils.polarCalculator(details.x, details.y);
+                      List<double> result =
+                          Utils.polarCalculator(details.x, details.y);
                       _speed0 = result[0];
                       _speed1 = result[1];
+                      roundSimilar();
                       changeSpeed0();
                       changeSpeed1();
                     });
