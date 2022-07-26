@@ -108,13 +108,13 @@ class _JoyStickPageState extends State<JoyStickPage> {
 
   void changeSpeed0() async {
     _speed0 *= velocityCoefficient;
-    var cli = await _connect('10.10.10.11');
+    var cli = await _connect('192.168.0.201');
     cli.writeSingleRegister(48, _speed0.toInt());
   }
 
   void changeSpeed1() async {
     _speed1 *= velocityCoefficient;
-    var cli = await _connect('10.10.10.10');
+    var cli = await _connect('192.168.0.200');
     cli.writeSingleRegister(48, -_speed1.toInt());
     //negative
   }

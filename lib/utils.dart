@@ -52,9 +52,9 @@ class Utils {
   }
 
   static void instructBoth(int opcode) async {
-    var cli1 = await _connect('10.10.10.11');
+    var cli1 = await _connect('192.168.0.201');
     cli1.writeSingleRegister(124, opcode);
-    var cli2 = await _connect('10.10.10.10');
+    var cli2 = await _connect('192.168.0.200');
     cli2.writeSingleRegister(124, opcode);
   }
 
