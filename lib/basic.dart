@@ -71,10 +71,7 @@ class _BasicPageState extends State<BasicPage> {
   }
 
   void _emergencyStop() async {
-    var cli = await _connect('10.10.10.11');
-    cli.writeSingleRegister(124, 225);
-    var cli2 = await _connect('10.10.10.10');
-    cli2.writeSingleRegister(124, 225);
+    Utils.instructBoth(225);
   }
 }
 
@@ -128,10 +125,10 @@ class _SetDistanceState extends State<SetDistance> {
 
   void _DI() async {
     List<int> input = Utils.splitLong(int.parse(_textController.text));
-    var cli1 = await _connect('10.10.10.11');
+    var cli1 = await _connect('192.168.0.201');
     cli1.writeSingleRegister(31, input[1]);
     cli1.writeSingleRegister(30, input[0]);
-    var cli2 = await _connect('10.10.10.10');
+    var cli2 = await _connect('192.168.0.200');
     cli2.writeSingleRegister(31, input[1]);
     cli2.writeSingleRegister(30, input[0]);
   }
