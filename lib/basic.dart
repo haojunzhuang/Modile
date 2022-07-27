@@ -11,6 +11,7 @@ class BasicPage extends StatefulWidget {
 
 class _BasicPageState extends State<BasicPage> {
   final myController = TextEditingController();
+  final basicStyle = TextStyle(fontSize: 20,);
 
   static ModbusClient? cli;
 
@@ -30,13 +31,13 @@ class _BasicPageState extends State<BasicPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                Text("Basic Commands to Control and Monitor Motor"),
-                TextButton(onPressed: _sendFL, child: Text('Feed to Length')),
+                Text("Basic Commands to Control and Monitor Motor", style: basicStyle,),
+                TextButton(onPressed: _sendFL, child: Text('Feed to Length', style: basicStyle,)),
                 TextButton(
                     onPressed: _emergencyStop,
                     child: Text(
                       'Emergency Stop',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(fontSize: 20, color: Colors.red),
                     )),
                 ReadMotor(),
                 SetDistance(),
@@ -110,7 +111,7 @@ class _SetDistanceState extends State<SetDistance> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(child: TextButton(onPressed: _DI, child: Text('setDistance')),),
+            Expanded(child: TextButton(onPressed: _DI, child: Text('setDistance', style: TextStyle(fontSize: 20))),),
             Expanded(child: TextField(
               controller: _textController,
               keyboardType: TextInputType.number,
@@ -147,7 +148,7 @@ class _ReadMotorState extends State<ReadMotor> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('immediate speed: $speed'),
-        TextButton(onPressed: _refresh, child: Text('read'))
+        TextButton(onPressed: _refresh, child: Text('read', style: TextStyle(fontSize: 20),))
       ],
     );
   }
@@ -160,7 +161,7 @@ class _ReadMotorState extends State<ReadMotor> {
     });
 
     var client = modbus.createTcpClient(
-      '10.10.10.11',
+      '192.168.0.201',
       port: 502,
       mode: modbus.ModbusMode.rtu,
     );

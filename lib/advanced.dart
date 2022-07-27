@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_joystick/flutter_joystick.dart';
+import 'package:logging/logging.dart';
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:modbus/modbus.dart';
-import 'package:logging/logging.dart';
+
 import 'utils.dart';
-import 'package:flutter_joystick/flutter_joystick.dart';
 
 const ballSize = 12.0;
 const velocityCoefficient = 2000;
@@ -18,44 +19,81 @@ class AdvancePage extends StatefulWidget {
 }
 
 class _AdvancePageState extends State<AdvancePage> {
+  bool jogging = false;
+
+  void toggleJogging(bool value) async {
+    if (!jogging) {
+      Utils.instructBoth(150);
+      setState(() {
+        jogging = value;
+      });
+    } else {
+      Utils.instructBoth(225);
+      setState(() {
+        jogging = value;
+      });
+    }
+  }
+
+  void roundZero() async {
+    var cli1 = await Utils.connect('192.168.0.201');
+    cli1.writeSingleRegister(48, 0);
+    var cli2 = await Utils.connect('192.168.0.200');
+    cli2.writeSingleRegister(48, 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Container(
-          height: 60.0,
-          child: DropdownButton<String>(
-            value: mode,
-            icon: const Icon(Icons.arrow_downward),
-            elevation: 16,
-            style: const TextStyle(color: Colors.deepPurple),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
-            onChanged: (String? newValue) {
-              setState(() {
-                mode = newValue!;
-                //rebuild the widget everytime
-              });
-            },
-            items: <String>['sliders', 'joystick']
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 18,
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Container(
+              height: 60.0,
+              child: DropdownButton<String>(
+                value: mode,
+                icon: const Icon(Icons.arrow_downward),
+                elevation: 16,
+                style: const TextStyle(color: Colors.deepPurple),
+                underline: Container(
+                  height: 2,
+                  color: Colors.deepPurpleAccent,
                 ),
-              );
-            }).toList(),
-          ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    mode = newValue!;
+                    //rebuild the widget everytime
+                    roundZero();
+                  });
+                },
+                items: <String>['sliders', 'joystick']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 18,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            Container(
+                color: Colors.orangeAccent,
+                height: 50.0,
+                child: Switch(
+                  value: jogging,
+                  onChanged: toggleJogging,
+                )),
+          ],
         ),
-        Expanded(child: JoyStickPage()),
+        JoyStickPage(),
       ],
     ));
   }
@@ -69,38 +107,6 @@ class JoyStickPage extends StatefulWidget {
 }
 
 class _JoyStickPageState extends State<JoyStickPage> {
-  Future<ModbusClient> _connect(String ip) async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
-
-    var client = modbus.createTcpClient(
-      ip,
-      port: 502,
-      mode: modbus.ModbusMode.rtu,
-    );
-
-    //await
-    await client.connect();
-
-    return client;
-  }
-
-  void toggleJogging(bool value) async {
-    if (!jogging) {
-      Utils.instructBoth(150);
-      setState(() {
-        jogging = value;
-      });
-    } else {
-      Utils.instructBoth(216);
-      setState(() {
-        jogging = value;
-      });
-    }
-  }
 
   void roundSimilar() {
     if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.2) {
@@ -117,13 +123,13 @@ class _JoyStickPageState extends State<JoyStickPage> {
 
   void changeSpeed0() async {
     _speed0 *= velocityCoefficient;
-    var cli = await _connect('192.168.0.201');
+    var cli = await Utils.connect('192.168.0.201');
     cli.writeSingleRegister(48, _speed0.toInt());
   }
 
   void changeSpeed1() async {
     _speed1 *= velocityCoefficient;
-    var cli = await _connect('192.168.0.200');
+    var cli = await Utils.connect('192.168.0.200');
     cli.writeSingleRegister(48, -_speed1.toInt());
     //negative
   }
@@ -139,14 +145,53 @@ class _JoyStickPageState extends State<JoyStickPage> {
   }
 
   void test() async {
-    var cli = await _connect('10.10.10.11');
+    var cli = await Utils.connect('10.10.10.11');
     cli.writeSingleRegister(48, 1000);
   }
 
-  double _speed0 = 0;
-  double _speed1 = 0;
+  var _speed0;
+  var _speed1;
+  var speedLeft;
+  var speedRight;
 
-  bool jogging = false;
+  void readVelocity() async {
+    Logger.root.level = Level.ALL;
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print(
+          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
+    });
+
+    var clientLeft = modbus.createTcpClient(
+      '192.168.0.201',
+      port: 502,
+      mode: modbus.ModbusMode.rtu,
+    );
+
+    await clientLeft.connect();
+
+    speedLeft = await clientLeft.readInputRegisters(10, 1);
+    speedLeft = speedLeft[0];
+
+    setState(() {
+      speedLeft = Utils.velocityFormula(speedLeft);
+    });
+
+    var clientRight = modbus.createTcpClient(
+      '192.168.0.200',
+      port: 502,
+      mode: modbus.ModbusMode.rtu,
+    );
+
+    await clientRight.connect();
+
+    speedRight = await clientRight.readInputRegisters(10, 1);
+    speedRight = speedRight[0];
+
+    setState(() {
+      speedRight = Utils.velocityFormula(speedRight);
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -155,43 +200,38 @@ class _JoyStickPageState extends State<JoyStickPage> {
         return Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              SizedBox(
+                height: 50.0,
+              ),
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [Text('a'), Text('b')]),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [Text('$_speed0'), Text('$_speed1')]),
-              Container(
-                  color: Colors.greenAccent,
-                  height: 50.0,
-                  child: Switch(
-                    value: jogging,
-                    onChanged: toggleJogging,
-                  )),
-              TextButton(onPressed: test, child: Text('test')),
-              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Align(
-                    alignment: const Alignment(0, 0.8),
-                    child: Joystick(
-                        mode: JoystickMode.vertical,
-                        period: const Duration(milliseconds: 100),
-                        listener: (details) {
-                          setState(() {
-                            _speed0 = details.y;
-                            roundSimilar();
-                            changeSpeed0();
-                          });
-                        },
-                        onStickDragEnd: () {
-                          setState(() {
-                            _speed0 = 0;
-                            end0();
-                          });
-                        }),
+                  Container(
+                    width: 150.0,
+                    height: 150.0,
+                    child: Align(
+                      alignment: Alignment(0, 0.8),
+                      child: Joystick(
+                          mode: JoystickMode.vertical,
+                          period: const Duration(milliseconds: 100),
+                          listener: (details) {
+                            setState(() {
+                              _speed0 = details.y;
+                              roundSimilar();
+                              changeSpeed0();
+                            });
+                          },
+                          onStickDragEnd: () {
+                            setState(() {
+                              _speed0 = 0;
+                              end0();
+                            });
+                          }),
+                    ),
                   ),
-                  Align(
-                    alignment: const Alignment(0, 0.8),
+                  Container(
+                    width: 150.0,
+                    height: 150.0,
                     child: Joystick(
                         mode: JoystickMode.vertical,
                         period: const Duration(milliseconds: 100),
@@ -208,7 +248,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                             end1();
                           });
                         }),
-                  ),
+                  )
                 ],
               )
             ]);
@@ -216,19 +256,9 @@ class _JoyStickPageState extends State<JoyStickPage> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: const [Text('a'), Text('b')]),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [Text('$_speed0'), Text('$_speed1')]),
-            Container(
-                color: Colors.orangeAccent,
-                height: 50.0,
-                child: Switch(
-                  value: jogging,
-                  onChanged: toggleJogging,
-                )),
+            SizedBox(
+              height: 50.0,
+            ),
             Align(
               alignment: const Alignment(0, 0.8),
               child: Joystick(

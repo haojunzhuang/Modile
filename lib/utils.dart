@@ -7,7 +7,7 @@ class Utils {
 
   //TODO: why 4
 
-  static Future<ModbusClient> _connect(String ip) async {
+  static Future<ModbusClient> connect(String ip) async {
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
       print(
@@ -52,9 +52,9 @@ class Utils {
   }
 
   static void instructBoth(int opcode) async {
-    var cli1 = await _connect('192.168.0.201');
+    var cli1 = await Utils.connect('192.168.0.201');
     cli1.writeSingleRegister(124, opcode);
-    var cli2 = await _connect('192.168.0.200');
+    var cli2 = await Utils.connect('192.168.0.200');
     cli2.writeSingleRegister(124, opcode);
   }
 
