@@ -28,6 +28,10 @@ class _AdvancePageState extends State<AdvancePage> {
         jogging = value;
       });
     } else {
+      var cli1 = await Utils.connect('192.168.0.201');
+      cli1.writeSingleRegister(48, 0);
+      var cli2 = await Utils.connect('192.168.0.200');
+      cli2.writeSingleRegister(48, 0);
       Utils.instructBoth(225);
       setState(() {
         jogging = value;
@@ -217,7 +221,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                           listener: (details) {
                             setState(() {
                               _speed0 = details.y;
-                              roundSimilar();
+                              //no round similar
                               changeSpeed0();
                             });
                           },
