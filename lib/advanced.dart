@@ -23,15 +23,15 @@ class _AdvancePageState extends State<AdvancePage> {
 
   void toggleJogging(bool value) async {
     if (!jogging) {
+      var cli1 = await Utils.connect('192.168.0.201');
+      cli1.writeSingleRegister(48, 0);
+      var cli2 = await Utils.connect('192.168.0.200');
+      cli2.writeSingleRegister(48, 0);
       Utils.instructBoth(150);
       setState(() {
         jogging = value;
       });
     } else {
-      var cli1 = await Utils.connect('192.168.0.201');
-      cli1.writeSingleRegister(48, 0);
-      var cli2 = await Utils.connect('192.168.0.200');
-      cli2.writeSingleRegister(48, 0);
       Utils.instructBoth(225);
       setState(() {
         jogging = value;
@@ -50,58 +50,75 @@ class _AdvancePageState extends State<AdvancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Container(
-              height: 60.0,
-              child: DropdownButton<String>(
-                value: mode,
-                icon: const Icon(Icons.arrow_downward),
-                elevation: 16,
-                style: const TextStyle(color: Colors.deepPurple),
-                underline: Container(
-                  height: 2,
-                  color: Colors.deepPurpleAccent,
-                ),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    mode = newValue!;
-                    //rebuild the widget everytime
-                    roundZero();
-                  });
-                },
-                items: <String>['sliders', 'joystick']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Container(
+                  height: 60.0,
+                  child: DropdownButton<String>(
+                    value: mode,
+                    icon: const Icon(Icons.arrow_downward),
+                    elevation: 16,
+                    style: const TextStyle(color: Colors.deepPurple),
+                    underline: Container(
+                      height: 2,
+                      color: Colors.deepPurpleAccent,
                     ),
-                  );
-                }).toList(),
-              ),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        mode = newValue!;
+                        //rebuild the widget everytime
+                        roundZero();
+                      });
+                    },
+                    items: <String>['sliders', 'joystick']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                Container(
+                    color: Colors.orangeAccent,
+                    height: 50.0,
+                    child: Switch(
+                      value: jogging,
+                      onChanged: toggleJogging,
+                    )),
+              ],
             ),
-            Container(
-                color: Colors.orangeAccent,
-                height: 50.0,
-                child: Switch(
-                  value: jogging,
-                  onChanged: toggleJogging,
-                )),
+            MaxVelocitySetter(),
+            JoyStickPage(),
           ],
-        ),
-        JoyStickPage(),
-      ],
-    ));
+        ));
   }
 }
+
+
+class MaxVelocitySetter extends StatefulWidget {
+  const MaxVelocitySetter({Key? key}) : super(key: key);
+
+  @override
+  State<MaxVelocitySetter> createState() => _MaxVelocitySetterState();
+}
+
+class _MaxVelocitySetterState extends State<MaxVelocitySetter> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
 
 class JoyStickPage extends StatefulWidget {
   const JoyStickPage({Key? key}) : super(key: key);
@@ -113,7 +130,7 @@ class JoyStickPage extends StatefulWidget {
 class _JoyStickPageState extends State<JoyStickPage> {
 
   void roundSimilar() {
-    if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.2) {
+    if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.3) {
       _speed1 = _speed0;
     } else {}
   }
@@ -153,47 +170,18 @@ class _JoyStickPageState extends State<JoyStickPage> {
     cli.writeSingleRegister(48, 1000);
   }
 
-  var _speed0;
-  var _speed1;
-  var speedLeft;
-  var speedRight;
+  var _speed0 = 0;
+  var _speed1 = 0;
+
+  double speedLeft = 0;
+  double speedRight = 0;
 
   void readVelocity() async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
+    List<double> s = Utils.getSpeed();
 
-    var clientLeft = modbus.createTcpClient(
-      '192.168.0.201',
-      port: 502,
-      mode: modbus.ModbusMode.rtu,
-    );
+    speedLeft = Utils.velocityFormula(s[0].toInt());
+    speedRight = Utils.velocityFormula(s[1].toInt());
 
-    await clientLeft.connect();
-
-    speedLeft = await clientLeft.readInputRegisters(10, 1);
-    speedLeft = speedLeft[0];
-
-    setState(() {
-      speedLeft = Utils.velocityFormula(speedLeft);
-    });
-
-    var clientRight = modbus.createTcpClient(
-      '192.168.0.200',
-      port: 502,
-      mode: modbus.ModbusMode.rtu,
-    );
-
-    await clientRight.connect();
-
-    speedRight = await clientRight.readInputRegisters(10, 1);
-    speedRight = speedRight[0];
-
-    setState(() {
-      speedRight = Utils.velocityFormula(speedRight);
-    });
   }
 
 
@@ -204,6 +192,10 @@ class _JoyStickPageState extends State<JoyStickPage> {
         return Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              SizedBox(
+                height: 50.0,
+              ),
+              Text('left: $speedLeft right: $speedRight'),
               SizedBox(
                 height: 50.0,
               ),
@@ -223,6 +215,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                               _speed0 = details.y;
                               //no round similar
                               changeSpeed0();
+                              readVelocity();
                             });
                           },
                           onStickDragEnd: () {
@@ -244,6 +237,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                             _speed1 = details.y;
                             roundSimilar();
                             changeSpeed1();
+                            readVelocity();
                           });
                         },
                         onStickDragEnd: () {
@@ -271,7 +265,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                   listener: (details) {
                     setState(() {
                       List<double> result =
-                          Utils.polarCalculator(details.x, details.y);
+                      Utils.polarCalculator(details.x, details.y);
                       _speed0 = result[0];
                       _speed1 = result[1];
                       roundSimilar();

@@ -72,7 +72,7 @@ class _BasicPageState extends State<BasicPage> {
   }
 
   void _emergencyStop() async {
-    Utils.instructBoth(225);
+    Utils.clean();
   }
 }
 

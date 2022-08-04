@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'basic.dart';
 import 'advanced.dart';
+import 'utils.dart';
 //b1
 
 void main() {
@@ -47,6 +48,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
   void _onItemTapped(int index) {
     /** setState takes an anonymous callback function*/
+    Utils.clean();
     setState(() {
       _selectedIndex = index;
     });

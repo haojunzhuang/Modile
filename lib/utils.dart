@@ -39,6 +39,18 @@ class Utils {
     return result.toStringAsFixed(2);
   }
 
+  static String velocityFormula(double x) {
+    double result;
+    if (x >= 32767) {
+      result = x - 65535;
+    } else {
+      result = x / 1;
+    }
+
+    result = result / GEARBOX;
+
+  }
+
   static List<int> splitLong(int x) {
     List<int> result = <int>[0, 0];
     if (x > 65535) {
@@ -67,4 +79,24 @@ class Utils {
 
     return <double>[left, right];
   }
+
+  static void clean() async {
+    instructBoth(225);
+  }
+
+  static List<String> getSpeed() {
+    var cli1 = await Utils.connect('192.168.0.201');
+    var left = await cli1.readInputRegisters(10, 1);
+    var cli2 = await Utils.connect('192.168.0.200');
+    var right = await cli2.readInputRegisters(10, 1);
+
+    cli1.close();
+    cli2.close();
+
+    left = velocityFormula(left[0]);
+    right = velocityFormula(right[0]);
+
+    return <String>[left, right];
+  }
+
 }
