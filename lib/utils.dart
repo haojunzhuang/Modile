@@ -1,9 +1,12 @@
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:modbus/modbus.dart';
 
+/// contains convenience methods for calculating and communicating
 class Utils {
   static const gearBox = 7 * 4;
 
+  /// returns a modbus TCP client according to the given IP address
+  //TODO: error handling
   static Future<ModbusClient> connect(String ip) async {
     var client = modbus.createTcpClient(
       ip,
@@ -17,6 +20,7 @@ class Utils {
     return client;
   }
 
+  /// determines the direction of the speed
   static double velocityFormula(int x) {
     double result;
     if (x >= 32767) {
@@ -31,6 +35,7 @@ class Utils {
     return double.parse(result.toStringAsFixed(2));
   }
 
+  /// breaks down a long into two bytes
   static List<int> splitLong(int x) {
     List<int> result = <int>[0, 0];
     if (x > 65535) {
@@ -43,6 +48,7 @@ class Utils {
     return result;
   }
 
+  /// gives an opcode command to both motors
   static void instructBoth(int opcode) async {
     // Note that Modbus functions 3, 6, and 16 all have 40001 offset
     // For example, here: 40125 - 40001 = 124.
@@ -53,6 +59,7 @@ class Utils {
     cli2.writeSingleRegister(124, opcode);
   }
 
+  /// math formula that maps the relative position of joystick to the speed of two motors
   static List<double> polarCalculator(double x, double y) {
     double left = 0;
     double right = 0;
@@ -63,7 +70,7 @@ class Utils {
     return <double>[left, right];
   }
 
-  // clean all the motions
+  // clear all the motions
   static void clean() async {
     instructBoth(225);
   }

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_joystick/flutter_joystick.dart';
-
 import 'utils.dart';
 
+/// Size of the joystick
 const ballSize = 12.0;
+
+/// a convenient coefficient that should be multiplied by the velocity sent to the motor
 const velocityCoefficient = 2000;
 
+/// a switch that indicates which control mode is selected
 String mode = 'sliders';
 
 class AdvancePage extends StatefulWidget {
