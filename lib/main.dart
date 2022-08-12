@@ -1,15 +1,26 @@
+/// main.dart
+/// A flutter-based mobile app that controls MDX-series motors.
+/// More information about flutter here: https://flutter.dev/.
+/// The IP address of the two motors in the AGV demo are 192.108.0.201(left) and 192.108.0.200(right),
+/// but they can be set to other addresses.
+/// The communication uses Modbus TCP protocol.
+/// More information could be found at appendix K of Host Command Reference:
+/// https://www.applied-motion.com/sites/default/files/Host-Command-Reference_920-0002P.PDF.
+/// Arthor: Haojun Zhuang
+///
+
+// This app adopts material design.
 import 'package:flutter/material.dart';
-import 'basic.dart';
+
+import 'basic_page.dart';
 import 'advanced.dart';
 import 'utils.dart';
-//b1
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-
   const MyApp({Key? key}) : super(key: key);
 
   static const String _title = 'MDX Mobile Controller';
@@ -21,7 +32,7 @@ class MyApp extends StatelessWidget {
       home: MyStatefulWidget(),
     );
   }
-  }
+}
 
 class MyStatefulWidget extends StatefulWidget {
   const MyStatefulWidget({Key? key}) : super(key: key);
@@ -34,28 +45,26 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   int _selectedIndex = 0;
 
   static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
 
-  static List<Widget> _widgetOptions = <Widget>[
+  // options of the bottom navigation bar
+  static final List<Widget> _widgetOptions = <Widget>[
     BasicPage(),
-    //index0
-    AdvancePage(),
-    Text(
+    const AdvancePage(),
+    const Text(
       'Settings',
       style: optionStyle,
     ),
   ];
 
   void _onItemTapped(int index) {
-    /** setState takes an anonymous callback function*/
     Utils.clean();
     setState(() {
+      // setState takes an anonymous function, whcih should be responsible of
+      // changing the internal state of the widget
       _selectedIndex = index;
     });
   }
-
-
-  //TextButton(onPressed: _sendFL, child: const Text('Feed to Length'))
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +91,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
+        selectedItemColor: Colors.indigo[500],
         onTap: _onItemTapped,
       ),
     );

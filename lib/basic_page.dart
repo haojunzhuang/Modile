@@ -1,19 +1,25 @@
+/// basic_page.dart
+/// This page demonstrates the mobile app's ability to both
+/// send (single or multiple, with or without extra parameter)
+/// and read modbus registers.
+
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:modbus/modbus.dart' as modbus;
-import 'package:modbus/modbus.dart';
 import 'utils.dart';
 
 class BasicPage extends StatefulWidget {
+  const BasicPage({Key? key}) : super(key: key);
+
   @override
   _BasicPageState createState() => _BasicPageState();
 }
 
 class _BasicPageState extends State<BasicPage> {
   final myController = TextEditingController();
-  final basicStyle = TextStyle(fontSize: 20,);
-
-  static ModbusClient? cli;
+  final basicStyle = const TextStyle(
+    fontSize: 20,
+  );
 
   @override
   void dispose() {
@@ -22,6 +28,7 @@ class _BasicPageState extends State<BasicPage> {
     super.dispose();
   }
 
+  // build the buttons and fields on the page
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,44 +38,32 @@ class _BasicPageState extends State<BasicPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                Text("Basic Commands to Control and Monitor Motor", style: basicStyle,),
-                TextButton(onPressed: _sendFL, child: Text('Feed to Length', style: basicStyle,)),
+                Text(
+                  "Basic Commands to Control and Monitor Motor",
+                  style: basicStyle,
+                ),
+                TextButton(
+                    onPressed: _sendFL,
+                    child: Text(
+                      'Feed to Length',
+                      style: basicStyle,
+                    )),
                 TextButton(
                     onPressed: _emergencyStop,
-                    child: Text(
+                    child: const Text(
                       'Emergency Stop',
                       style: TextStyle(fontSize: 20, color: Colors.red),
                     )),
-                ReadMotor(),
-                SetDistance(),
+                const ReadMotor(),
+                const SetDistance(),
               ],
             )),
       ),
     );
   }
 
-  static Future<ModbusClient> _connect(String ip) async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
-
-    var client = modbus.createTcpClient(
-      ip,
-      port: 502,
-      mode: modbus.ModbusMode.rtu,
-    );
-
-    //await
-    await client.connect();
-
-    return client;
-  }
-
   void _sendFL() async {
     Utils.instructBoth(102);
-    //40001 offset
   }
 
   void _emergencyStop() async {
@@ -77,6 +72,8 @@ class _BasicPageState extends State<BasicPage> {
 }
 
 class SetDistance extends StatefulWidget {
+  const SetDistance({Key? key}) : super(key: key);
+
   @override
   _SetDistanceState createState() => _SetDistanceState();
 }
@@ -84,71 +81,65 @@ class SetDistance extends StatefulWidget {
 class _SetDistanceState extends State<SetDistance> {
   final _textController = TextEditingController();
 
-  static Future<ModbusClient> _connect(String ip) async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
-
-    var client = modbus.createTcpClient(
-      ip,
-      port: 502,
-      mode: modbus.ModbusMode.rtu,
-    );
-
-    //await
-    await client.connect();
-
-    return client;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
         height: 50.0,
         width: 300.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(child: TextButton(onPressed: _DI, child: Text('setDistance', style: TextStyle(fontSize: 20))),),
-            Expanded(child: TextField(
+            Expanded(
+              child: TextButton(
+                  onPressed: _setDistance,
+                  child: const Text('setDistance',
+                      style: TextStyle(fontSize: 20))),
+            ),
+            Expanded(
+                child: TextField(
               controller: _textController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Distance'
-              ),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(), labelText: 'Distance'),
             ))
           ],
-    ));
+        ));
   }
 
-  void _DI() async {
+  // Since distance register is a 16 bit register, we need to send two bytes
+  void _setDistance() async {
     List<int> input = Utils.splitLong(int.parse(_textController.text));
-    var cli1 = await _connect('192.168.0.201');
+    var cli1 = await Utils.connect('192.168.0.201');
     cli1.writeSingleRegister(31, input[1]);
     cli1.writeSingleRegister(30, input[0]);
-    var cli2 = await _connect('192.168.0.200');
+    var cli2 = await Utils.connect('192.168.0.200');
     cli2.writeSingleRegister(31, input[1]);
     cli2.writeSingleRegister(30, input[0]);
   }
 }
 
 class ReadMotor extends StatefulWidget {
+  const ReadMotor({Key? key}) : super(key: key);
+
   @override
   _ReadMotorState createState() => _ReadMotorState();
 }
 
 class _ReadMotorState extends State<ReadMotor> {
-  var speed;
+  double speed = 0;
 
+  @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('immediate speed: $speed'),
-        TextButton(onPressed: _refresh, child: Text('read', style: TextStyle(fontSize: 20),))
+        TextButton(
+            onPressed: _refresh,
+            child: const Text(
+              'read',
+              style: TextStyle(fontSize: 20),
+            ))
       ],
     );
   }

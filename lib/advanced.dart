@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_joystick/flutter_joystick.dart';
-import 'package:logging/logging.dart';
-import 'package:modbus/modbus.dart' as modbus;
-import 'package:modbus/modbus.dart';
 
 import 'utils.dart';
 
@@ -50,61 +47,61 @@ class _AdvancePageState extends State<AdvancePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Container(
-                  height: 60.0,
-                  child: DropdownButton<String>(
-                    value: mode,
-                    icon: const Icon(Icons.arrow_downward),
-                    elevation: 16,
-                    style: const TextStyle(color: Colors.deepPurple),
-                    underline: Container(
-                      height: 2,
-                      color: Colors.deepPurpleAccent,
-                    ),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        mode = newValue!;
-                        //rebuild the widget everytime
-                        roundZero();
-                      });
-                    },
-                    items: <String>['sliders', 'joystick']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(
-                            fontSize: 18,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+            Container(
+              height: 60.0,
+              child: DropdownButton<String>(
+                value: mode,
+                icon: const Icon(Icons.arrow_downward),
+                elevation: 16,
+                style: const TextStyle(color: Colors.deepPurple),
+                underline: Container(
+                  height: 2,
+                  color: Colors.deepPurpleAccent,
                 ),
-                Container(
-                    color: Colors.orangeAccent,
-                    height: 50.0,
-                    child: Switch(
-                      value: jogging,
-                      onChanged: toggleJogging,
-                    )),
-              ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    mode = newValue!;
+                    //rebuild the widget everytime
+                    roundZero();
+                  });
+                },
+                items: <String>['sliders', 'joystick']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 18,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
-            MaxVelocitySetter(),
-            JoyStickPage(),
+            Container(
+                color: Colors.orangeAccent,
+                height: 50.0,
+                child: Switch(
+                  value: jogging,
+                  onChanged: toggleJogging,
+                )),
           ],
-        ));
+        ),
+        MaxVelocitySetter(),
+        JoyStickPage(),
+      ],
+    ));
   }
 }
 
-
+//TODO: add a slider for max velocity
 class MaxVelocitySetter extends StatefulWidget {
   const MaxVelocitySetter({Key? key}) : super(key: key);
 
@@ -119,7 +116,6 @@ class _MaxVelocitySetterState extends State<MaxVelocitySetter> {
   }
 }
 
-
 class JoyStickPage extends StatefulWidget {
   const JoyStickPage({Key? key}) : super(key: key);
 
@@ -128,8 +124,7 @@ class JoyStickPage extends StatefulWidget {
 }
 
 class _JoyStickPageState extends State<JoyStickPage> {
-
-  void roundSimilar() {
+  void deadband() {
     if (_speed0 != 0 && _speed1 != 0 && (_speed0 - _speed1).abs() < 0.3) {
       _speed1 = _speed0;
     } else {}
@@ -170,20 +165,11 @@ class _JoyStickPageState extends State<JoyStickPage> {
     cli.writeSingleRegister(48, 1000);
   }
 
-  var _speed0 = 0;
-  var _speed1 = 0;
+  double _speed0 = 0;
+  double _speed1 = 0;
 
   double speedLeft = 0;
   double speedRight = 0;
-
-  void readVelocity() async {
-    List<double> s = Utils.getSpeed();
-
-    speedLeft = Utils.velocityFormula(s[0].toInt());
-    speedRight = Utils.velocityFormula(s[1].toInt());
-
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -192,21 +178,21 @@ class _JoyStickPageState extends State<JoyStickPage> {
         return Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 50.0,
               ),
               Text('left: $speedLeft right: $speedRight'),
-              SizedBox(
+              const SizedBox(
                 height: 50.0,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 150.0,
                     height: 150.0,
                     child: Align(
-                      alignment: Alignment(0, 0.8),
+                      alignment: const Alignment(0, 0.8),
                       child: Joystick(
                           mode: JoystickMode.vertical,
                           period: const Duration(milliseconds: 100),
@@ -215,7 +201,6 @@ class _JoyStickPageState extends State<JoyStickPage> {
                               _speed0 = details.y;
                               //no round similar
                               changeSpeed0();
-                              readVelocity();
                             });
                           },
                           onStickDragEnd: () {
@@ -226,7 +211,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                           }),
                     ),
                   ),
-                  Container(
+                  SizedBox(
                     width: 150.0,
                     height: 150.0,
                     child: Joystick(
@@ -235,9 +220,8 @@ class _JoyStickPageState extends State<JoyStickPage> {
                         listener: (details) {
                           setState(() {
                             _speed1 = details.y;
-                            roundSimilar();
+                            deadband();
                             changeSpeed1();
-                            readVelocity();
                           });
                         },
                         onStickDragEnd: () {
@@ -265,10 +249,10 @@ class _JoyStickPageState extends State<JoyStickPage> {
                   listener: (details) {
                     setState(() {
                       List<double> result =
-                      Utils.polarCalculator(details.x, details.y);
+                          Utils.polarCalculator(details.x, details.y);
                       _speed0 = result[0];
                       _speed1 = result[1];
-                      roundSimilar();
+                      deadband();
                       changeSpeed0();
                       changeSpeed1();
                     });

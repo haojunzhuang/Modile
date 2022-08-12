@@ -26,7 +26,7 @@ class Utils {
     return client;
   }
 
-  static String velocityFormula(int x) {
+  static double velocityFormula(int x) {
     double result;
     if (x >= 32767) {
       result = x - 65535;
@@ -36,19 +36,8 @@ class Utils {
 
     result = result / GEARBOX;
 
-    return result.toStringAsFixed(2);
-  }
-
-  static String velocityFormula(double x) {
-    double result;
-    if (x >= 32767) {
-      result = x - 65535;
-    } else {
-      result = x / 1;
-    }
-
-    result = result / GEARBOX;
-
+    // rounding the result
+    return double.parse(result.toStringAsFixed(2));
   }
 
   static List<int> splitLong(int x) {
@@ -64,6 +53,9 @@ class Utils {
   }
 
   static void instructBoth(int opcode) async {
+    // Note that Modbus functions 3, 6, and 16 all have 40001 offset
+    // For example, here: 40125 - 40001 = 124.
+
     var cli1 = await Utils.connect('192.168.0.201');
     cli1.writeSingleRegister(124, opcode);
     var cli2 = await Utils.connect('192.168.0.200');
@@ -80,23 +72,8 @@ class Utils {
     return <double>[left, right];
   }
 
+  // clean all the motions
   static void clean() async {
     instructBoth(225);
   }
-
-  static List<String> getSpeed() {
-    var cli1 = await Utils.connect('192.168.0.201');
-    var left = await cli1.readInputRegisters(10, 1);
-    var cli2 = await Utils.connect('192.168.0.200');
-    var right = await cli2.readInputRegisters(10, 1);
-
-    cli1.close();
-    cli2.close();
-
-    left = velocityFormula(left[0]);
-    right = velocityFormula(right[0]);
-
-    return <String>[left, right];
-  }
-
 }
