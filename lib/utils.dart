@@ -1,19 +1,10 @@
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:modbus/modbus.dart';
-import 'package:logging/logging.dart';
 
 class Utils {
-  static double GEARBOX = 7 * 4;
-
-  //TODO: why 4
+  static const gearBox = 7 * 4;
 
   static Future<ModbusClient> connect(String ip) async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
-
     var client = modbus.createTcpClient(
       ip,
       port: 502,
@@ -34,7 +25,7 @@ class Utils {
       result = x / 1;
     }
 
-    result = result / GEARBOX;
+    result = result / gearBox;
 
     // rounding the result
     return double.parse(result.toStringAsFixed(2));

@@ -53,7 +53,7 @@ class _AdvancePageState extends State<AdvancePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Container(
+            SizedBox(
               height: 60.0,
               child: DropdownButton<String>(
                 value: mode,
@@ -68,7 +68,6 @@ class _AdvancePageState extends State<AdvancePage> {
                   setState(() {
                     mode = newValue!;
                     //rebuild the widget everytime
-                    roundZero();
                   });
                 },
                 items: <String>['sliders', 'joystick']
@@ -77,7 +76,7 @@ class _AdvancePageState extends State<AdvancePage> {
                     value: value,
                     child: Text(
                       value,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                       ),
                     ),
@@ -94,7 +93,9 @@ class _AdvancePageState extends State<AdvancePage> {
                 )),
           ],
         ),
-        MaxVelocitySetter(),
+        const MaxVelocitySetter(),
+        // const is avoided here because this is built based on the global variable 'mode'
+        // TODO: change to stream builder
         JoyStickPage(),
       ],
     ));
@@ -150,12 +151,12 @@ class _JoyStickPageState extends State<JoyStickPage> {
     //negative
   }
 
-  void end0() async {
+  void endLeft() async {
     _speed0 = 0;
     changeSpeed0();
   }
 
-  void end1() async {
+  void endRight() async {
     _speed1 = 0;
     changeSpeed1();
   }
@@ -168,8 +169,8 @@ class _JoyStickPageState extends State<JoyStickPage> {
   double _speed0 = 0;
   double _speed1 = 0;
 
-  double speedLeft = 0;
-  double speedRight = 0;
+  double actualSpeedLeft = 0;
+  double actualSpeedRight = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +182,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
               const SizedBox(
                 height: 50.0,
               ),
-              Text('left: $speedLeft right: $speedRight'),
+              Text('left: $actualSpeedLeft right: $actualSpeedRight'),
               const SizedBox(
                 height: 50.0,
               ),
@@ -206,7 +207,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                           onStickDragEnd: () {
                             setState(() {
                               _speed0 = 0;
-                              end0();
+                              endLeft();
                             });
                           }),
                     ),
@@ -227,7 +228,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
                         onStickDragEnd: () {
                           setState(() {
                             _speed1 = 0;
-                            end1();
+                            endRight();
                           });
                         }),
                   )
@@ -238,7 +239,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 50.0,
             ),
             Align(
@@ -261,8 +262,8 @@ class _JoyStickPageState extends State<JoyStickPage> {
                     setState(() {
                       _speed0 = 0;
                       _speed1 = 0;
-                      end0();
-                      end1();
+                      endLeft();
+                      endRight();
                     });
                   }),
             ),
@@ -270,7 +271,7 @@ class _JoyStickPageState extends State<JoyStickPage> {
         );
 
       default:
-        return Text('default');
+        return const Text('default');
     }
   }
 }

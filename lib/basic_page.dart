@@ -4,7 +4,6 @@
 /// and read modbus registers.
 
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 import 'package:modbus/modbus.dart' as modbus;
 import 'utils.dart';
 
@@ -145,12 +144,6 @@ class _ReadMotorState extends State<ReadMotor> {
   }
 
   void _refresh() async {
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: ${rec.time} [${rec.loggerName}]: ${rec.message}');
-    });
-
     var client = modbus.createTcpClient(
       '192.168.0.201',
       port: 502,
@@ -160,12 +153,12 @@ class _ReadMotorState extends State<ReadMotor> {
     //await
     await client.connect();
 
-    var speed_now;
-    speed_now = await client.readInputRegisters(10, 1);
-    speed_now = speed_now[0];
+    var speedNow;
+    speedNow = await client.readInputRegisters(10, 1);
+    speedNow = speedNow[0];
 
     setState(() {
-      speed = Utils.velocityFormula(speed_now);
+      speed = Utils.velocityFormula(speedNow);
     });
 
     client.close();

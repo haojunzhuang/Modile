@@ -6,6 +6,9 @@
 /// The communication uses Modbus TCP protocol.
 /// More information could be found at appendix K of Host Command Reference:
 /// https://www.applied-motion.com/sites/default/files/Host-Command-Reference_920-0002P.PDF.
+/// Feel free to submit pull requests at: https://github.com/Hogean/Modile.
+/// Testflight invitation is available, please contact me at
+/// hzhuang@applied-motion.com or (510)-710-8946.
 /// Arthor: Haojun Zhuang
 ///
 
@@ -49,7 +52,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
   // options of the bottom navigation bar
   static final List<Widget> _widgetOptions = <Widget>[
-    BasicPage(),
+    const BasicPage(),
     const AdvancePage(),
     const Text(
       'Settings',
