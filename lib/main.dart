@@ -15,9 +15,9 @@
 // This app adopts material design.
 import 'package:flutter/material.dart';
 
-import 'basic_page.dart';
-import 'advanced.dart';
-import 'utils.dart';
+import 'src/basic_page.dart';
+import 'src/advanced_page.dart';
+import 'src/utils.dart';
 
 void main() {
   runApp(const MyApp());
